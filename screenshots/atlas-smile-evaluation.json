@@ -1,0 +1,222 @@
+{
+  "name": "atlas-smile-evaluation",
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1RvfIuDXFFBvfExSaWX9CKq1yNYBiCNdEKLakgpyt6JU",
+          "mode": "list",
+          "cachedResultName": "test_questions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RvfIuDXFFBvfExSaWX9CKq1yNYBiCNdEKLakgpyt6JU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1919910891,
+          "mode": "list",
+          "cachedResultName": "test_questions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RvfIuDXFFBvfExSaWX9CKq1yNYBiCNdEKLakgpyt6JU/edit#gid=1919910891"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "72214819-d2b8-42a2-be11-b706caea7804",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "w3IqjwyQQQJde0A3",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "JcpesidOIhT7qMVn",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/JcpesidOIhT7qMVn",
+          "cachedResultName": "atlas-smile-rag-query"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [
+            "Name: question"
+          ],
+          "schema": [
+            {
+              "id": "question",
+              "displayName": "question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        0
+      ],
+      "id": "93b82dae-3808-4ed1-8db3-b5544d75288d",
+      "name": "Call 'atlas-smile-rag-query'"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1RvfIuDXFFBvfExSaWX9CKq1yNYBiCNdEKLakgpyt6JU",
+          "mode": "list",
+          "cachedResultName": "test_questions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RvfIuDXFFBvfExSaWX9CKq1yNYBiCNdEKLakgpyt6JU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1052024243,
+          "mode": "list",
+          "cachedResultName": "evaluation_results",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RvfIuDXFFBvfExSaWX9CKq1yNYBiCNdEKLakgpyt6JU/edit#gid=1052024243"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "question": "={{ $('Get row(s) in sheet').item.json.question }}",
+            "category": "={{ $('Get row(s) in sheet').item.json.type }}",
+            "answer": "={{ $json.output }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "question",
+              "displayName": "question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "answer",
+              "displayName": "answer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        0
+      ],
+      "id": "8549a40e-7a85-4486-ba04-126218cd3b1c",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "w3IqjwyQQQJde0A3",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d54f3faf-b3de-4b73-a0f7-76cc3e92c898",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Call 'atlas-smile-rag-query'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'atlas-smile-rag-query'": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "428e8eaf-3e1e-4971-942b-3a8d0ec3242a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4d47387af53dc38754cf8528f96d9f4d73c3fa554d920d5506a3ec613845e1ab"
+  },
+  "nodeGroups": [],
+  "id": "uKQWIoTgBiJxR2gS",
+  "tags": []
+}
