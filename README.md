@@ -236,6 +236,16 @@ The evaluation focuses on whether the system:
 3. Provides sufficiently complete responses.
 4. Expresses the answer clearly.
 
+   
+### Evaluation Data
+
+The `data/` directory contains the datasets used for testing, evaluation, logging, and error tracking.
+
+- `test-questions.csv` — evaluation questions and test cases
+- `evaluation-results.csv` — evaluation outputs and results
+- `conversation-log.csv` — conversation records
+- `error-log.csv` — recorded workflow errors
+
 ---
 
 RAG Pipeline
@@ -367,33 +377,34 @@ JavaScript| Data transformation and preprocessing
 
 Project Structure
 
-Atlas Smile
+
+atlas-smile/
 │
-├── atlas-smile-ingestion
-│ ├── File discovery
-│ ├── File download
-│ ├── PDF extraction
-│ ├── Data preprocessing
-│ ├── Text processing
-│ ├── Embeddings
-│ └── Supabase Vector Store
+├── README.md
 │
-├── atlas-smile-rag-query
-│ ├── Telegram input
-│ ├── Evaluation input
-│ ├── AI Agent
-│ ├── OpenAI Chat Model
-│ ├── PostgreSQL Memory
-│ ├── Supabase Vector Store
-│ ├── Telegram response
-│ ├── Google Sheets logging
-│ └── Error handling
+├── workflows/
+│ ├── atlas-smile-ingestion.json
+│ ├── atlas-smile-rag-query.json
+│ └── atlas-smile-evaluation.json
 │
-└── atlas-smile-evaluation
-    ├── Evaluation input
-    ├── Test cases
-    ├── RAG execution
-    └── Result analysis
+├── screenshots/
+│ ├── ingestion.png
+│ ├── rag-query.png
+│ ├── evaluation.png
+│ └── evaluation-results.png
+│
+├── sample-data/
+│ ├── 01-document.pdf
+│ ├── 02-document.pdf
+│ ├── 03-document.pdf
+│ └── ...
+│
+└── data/
+    ├── test-questions.csv
+    ├── evaluation-results.csv
+    ├── conversation-log.csv
+    └── error-log.csv
+
 
 ---
 
