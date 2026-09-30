@@ -1,0 +1,443 @@
+{
+  "name": "atlas-smile-ingestion",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        32
+      ],
+      "id": "cdb79182-ae6b-4b89-a53a-709e41b8b03a",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "1eSoc4-GJ7lcXaH14HhWFwebtZmpQoIsP",
+            "mode": "list",
+            "cachedResultName": "Clinic project",
+            "cachedResultUrl": ""
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        224,
+        32
+      ],
+      "id": "f73001ba-1730-4a72-8b07-ac7f33ead305",
+      "name": "Search files and folders"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        416,
+        32
+      ],
+      "id": "e8611cc1-389c-425c-9929-a49dbbbfca82",
+      "name": "Download file"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        32
+      ],
+      "id": "4f47f40d-d801-4bf8-8cd0-5dcd61404233",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "72163173-3ce4-43a0-88b9-67d34770183c",
+              "name": "pageContent",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "b66b90d6-fd3b-4512-9056-43b8a89683d3",
+              "name": "metadata",
+              "value": "={{ $('Download file').item.json.name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        816,
+        32
+      ],
+      "id": "eaef581a-e9c3-493b-abeb-d7a5fe5067ef",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        1536,
+        32
+      ],
+      "id": "7e93e281-9506-4e6f-a559-7947acea070c",
+      "name": "Supabase Vector Store"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        304
+      ],
+      "id": "944c8423-24ba-454e-87cb-ea1a6da6d7b9",
+      "name": "Embeddings OpenAI"
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.pageContent }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "source",
+                "value": "={{ $json.metadata }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1072,
+        288
+      ],
+      "id": "99ce2464-324f-4265-a9d9-2b46e2fbe215",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  if (typeof item.json.pageContent === 'string') {\n    let cleaned = item.json.pageContent;\n    cleaned = cleaned.split('\\\\n').join(' ');\n    cleaned = cleaned.split('\\\\r').join(' ');\n    cleaned = cleaned.split('\\\\t').join(' ');\n    cleaned = cleaned.split('\\\\').join(' ');\n    cleaned = cleaned.replace(/[\\x00-\\x1F\\x7F]/g, ' ');\n    cleaned = cleaned.replace(/[\\uD800-\\uDFFF]/g, '');\n    // إزالة أحرف التحكم بالاتجاه (Bidi) وأحرف عرضها صفر\n    cleaned = cleaned.replace(/[\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u2069\\uFEFF]/g, '');\n    cleaned = cleaned.replace(/\\s{2,}/g, ' ').trim();\n    item.json.pageContent = cleaned;\n  }\n}\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        32
+      ],
+      "id": "18e93902-068d-4d7c-a4b4-cb44b84d5972",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "chunkSize": 1500,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        880,
+        304
+      ],
+      "id": "37d08672-cf8a-4c38-8087-e1508e598a87",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst output = [];\n\nconst doctorsContent = [\n  \"د. سمير تواتي — طب الأسنان العام. يتولى الكشف وتنظيف الجير والحشو التجميلي والخلع البسيط والتبييض والتيجان. أيام العمل: من الأحد إلى الخميس، ويوم السبت صباحاً (09:00–13:00). اللغات: العربية والفرنسية والدارجة.\",\n  \"د. أمينة بن سعيد — أخصائية في تقويم الأسنان (Orthodontie). أيام العمل: الأحد والثلاثاء، من 09:00 إلى 17:00. اللغات: العربية والفرنسية والإنجليزية.\",\n  \"د. كريم مرزوق — جراح فم وأسنان، يتولى الخلع الجراحي وضرس العقل وزراعة الأسنان. أيام العمل: الاثنين والأربعاء، من 09:00 إلى 17:00. اللغات: العربية والفرنسية.\",\n  \"د. ليلى حداد — تتولى عالج العصب (Endodontie) وطب أسنان الأطفال (Pédodontie). أيام العمل: الأحد والثلاثاء والخميس من 09:00 إلى 17:00، ويوم السبت من 09:00 إلى 13:00. اللغات: العربية والفرنسية والدارجة.\",\n  \"جدول الأسبوع (من يعمل في كل يوم): الأحد: د. سمير تواتي، د. أمينة بن سعيد، د. ليلى حداد. الاثنين: د. سمير تواتي، د. كريم مرزوق. الثلاثاء: د. سمير تواتي، د. أمينة بن سعيد، د. ليلى حداد. الأربعاء: د. سمير تواتي، د. كريم مرزوق. الخميس: د. سمير تواتي، د. ليلى حداد. الجمعة: عطلة، لا يوجد أطباء. السبت (09:00–13:00): د. سمير تواتي، د. ليلى حداد.\",\n  \"اختيار الطبيب: يُحدَّد الطبيب حسب نوع العلاج. إذا لم يعرف المريض أي طبيب يناسبه، يبدأ بالكشف الأول عند د. سمير تواتي، وهو من يوجهه إلى الأخصائي عند الحاجة.\"\n];\n\nfor (const item of $input.all()) {\n  const source = item.json.metadata || '';\n  const isDoctorsFile = source.includes('03_doctors');\n\n  if (!isDoctorsFile) {\n    output.push(item);\n    continue;\n  }\n\n  for (const block of doctorsContent) {\n    output.push({\n      json: {\n        pageContent: block,\n        metadata: source\n      }\n    });\n  }\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        32
+      ],
+      "id": "a4a3c4b2-cc9b-4152-a2c4-c200412971c5",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nfor (const item of $input.all()) {\n  if (item.json.pageContent) {\n    // توضيح صريح أن رقم 60,000 هو شرط تقسيط، مو سعر خدمة\n    item.json.pageContent = item.json.pageContent.replace(\n      /60,?000\\s*دج/g,\n      \"60,000 دج (هذا حد أدنى لتكلفة العلاج الذي يؤهل للتقسيط، وليس سعراً لأي خدمة بعينها)\"\n    );\n    // توضيح صريح أن رقم 6000 هو سعر أشعة، مو سعر زراعة\n    item.json.pageContent = item.json.pageContent.replace(\n      /6000\\s*دج/g,\n      \"6000 دج (سعر الأشعة ثلاثية الأبعاد فقط، وليس سعر عملية الزراعة نفسها)\"\n    );\n  }\n}\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        32
+      ],
+      "id": "8d602d7f-f951-4aa0-b662-d9990163e6d7",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "content": "# 1\\ Trigger \nStart the workflow",
+        "height": 240,
+        "color": "#2563EB"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -96,
+        -64
+      ],
+      "typeVersion": 1,
+      "id": "2d2018b6-4b85-42f6-b734-5ff1be1062b8",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# 2\\ Search & Download\nFind and get the data\n",
+        "height": 240,
+        "width": 416,
+        "color": "#22C55E"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        160,
+        -64
+      ],
+      "typeVersion": 1,
+      "id": "2b0d5c20-b8ee-4570-8609-34aad1460b6a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "# 3\\ Extract & Parse \nGet the data from the PDF\n",
+        "height": 240,
+        "width": 352,
+        "color": "#870DBF"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        592,
+        -64
+      ],
+      "typeVersion": 1,
+      "id": "84bbb49d-3d47-4929-a4d9-68a9de7ce7d8",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "# 4\\ Prepare Data\nClear, transform and structure",
+        "height": 240,
+        "width": 512,
+        "color": "#F59E0B"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        960,
+        -64
+      ],
+      "typeVersion": 1,
+      "id": "69dae23e-357d-4afc-9a4d-7f363d1ba69d",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "# 5\\ Store & Share\nSave the result and notify\n",
+        "height": 240,
+        "width": 336,
+        "color": "#06B6D4"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1488,
+        -64
+      ],
+      "typeVersion": 1,
+      "id": "28a76336-82e9-448d-b141-d4801c906e01",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "# Vector Processing\nCreate embeddings and prepare the data for the vector store",
+        "height": 224,
+        "width": 1104,
+        "color": "#0B1726"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        240,
+        208
+      ],
+      "typeVersion": 1,
+      "id": "c17891b3-e2d2-4ed2-8a76-bfc2f48265bc",
+      "name": "Sticky Note5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Search files and folders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5ea45edb-8958-4c26-b210-69c814e8de13",
+  "meta": {},
+  "nodeGroups": [],
+  "id": "HVEMvl4aBwkavI8w",
+  "tags": []
+}

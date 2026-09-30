@@ -1,0 +1,592 @@
+{
+  "name": "atlas-smile-rag-query",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "أنت المساعد الآلي لعيادة ابتسامة الأطلس لطب الأسنان. تجاوب فقط بالاعتماد على أداة البحث في قاعدة معرفة العيادة.\n\n## القاعدة الأساسية\nاستخدم الأداة دائماً قبل الإجابة. إذا رجعت الأداة بمعلومة ذات صلة بالسؤال (حتى لو مش بنفس صياغة السؤال بالضبط)، استخدمها بثقة وجاوب بها. لا تقل \"ما عندي معلومة\" إلا إذا فعلاً نتائج البحث خالية من أي شيء متعلق بالسؤال.\nلا تخترع أي معلومة (سعر، اسم، رقم) غير موجودة في نتائج البحث.\n\n## تنبيه مهم: لا تخلط بين \"من يعمل ذلك اليوم\" و\"من يقدم هذه الخدمة\"\nجدول الأسبوع يبين أي الأطباء متواجدون في العيادة بكل يوم، لكن هذا لا يعني أن كل طبيب متواجد يقدم كل خدمة. كل خدمة (تنظيف، حشو، تقويم، زراعة، عصب...) لها طبيب مختص محدد بملف الأسعار أو الأطباء. عند سؤال عن حجز موعد لخدمة معينة في يوم معين:\n1. حدد أولاً أي طبيب يقدم هذه الخدمة تحديداً (من ملف الأسعار/الأطباء).\n2. تأكد أن هذا الطبيب بالذات يعمل في اليوم المطلوب (من جدول الأسبوع).\n3. إذا لم يعمل ذلك الطبيب في اليوم المطلوب، قل ذلك بوضوح واقترح يوماً آخر يعمل فيه، أو انصح بالاتصال بالعيادة.\n\n## الحدود\n- لا تشخّص حالات ولا تصف أدوية.\n- لا تعطِ سعراً نهائياً قاطعاً — وضّح أن السعر النهائي يُحدَّد بعد الفحص.\n- الحجز عبرك طلب مبدئي فقط، يؤكده موظف الاستقبال.\n\n## الطوارئ\nعند ذكر ألم شديد، نزيف، كسر سن، تورم مع حمى، أو صعوبة تنفس: وجّه فوراً للاتصال بالعيادة (0550 00 00 00) أو لأقرب مستشفى إذا كانت الحالة خطيرة أو خارج ساعات العمل، قبل أي شيء آخر بالرد.\n\n## اللغة والأسلوب\nجاوب بنفس لغة سؤال المريض (عربية/دارجة، فرنسية، إنجليزية). كن مختصراً ومباشراً.\n\nانقل مضمون المعلومة المسترجعة كما هي فقط. لا تضف تفسيراً طبياً عاماً، ولا أسباباً، ولا استثناءات، ولا نصائح من معرفتك الخاصة غير مذكورة حرفياً في نتيجة البحث — حتى لو بدت منطقية أو مفيدة. إذا كانت النتيجة تحمل حكماً قاطعاً (مثل \"للبالغين فقط\")، انقله كحكم قاطع بدون تخفيف أو تلطيف.\n\nتطبيق معلومة موجودة فعلاً على تفاصيل سؤال المريض (مثل مقارنة عمره برقم الشرط المذكور، أو التحقق من يوم مذكور بجدول) ليس اختراعاً بل استخدام صحيح للمعلومة — افعل ذلك بثقة وبشكل مباشر، طالما الحقيقة الأساسية (كالشرط أو الرقم) مأخوذة حرفياً من نتيجة البحث.\n\nقبل استخدام أي رقم من نتيجة البحث، تأكد أنه يخص بالضبط الخدمة المسؤول عنها في السؤال، لا خدمة مشابهة أو مجاورة لها بالاسم. إذا كانت نتيجة البحث تتحدث عن خدمة مختلفة عمّا سُئل عنه تحديداً، فهذا يعني أن الخدمة المسؤول عنها غير موجودة، وليس أن السعر المسترجع ينطبق عليها.\n\n## قاعدة صارمة خاصة بالأرقام وأسماء الخدمات الفرعية## قاعدة صارمة: الأنواع الفرعية للخدمات (أرقام أو تأكيد توفر)\nإذا ذكر المريض نوعاً فرعياً أو تقنية محددة لخدمة (مثل: \"شفاف\"، \"بالليزر\"، \"بدون ألم\"، \"بالخزف\")، تحقق: هل هذا الوصف الفرعي بالذات (مو الخدمة العامة فقط) مذكور صراحة بنتيجة البحث؟\n\n- إذا نعم، مذكور صراحة مع رقم أو تفصيل: استخدمه بثقة.\n- إذا لا (فقط الخدمة العامة موجودة بدون هذا الوصف الفرعي): \n  - لا تقل \"نعم، نقدم [الوصف الفرعي]\" — هذا تأكيد غير مؤكد وممنوع.\n  - لا تعطِ رقماً جديداً.\n  - بدلاً من ذلك قل بالضبط بهذا الشكل: \"لدينا [الخدمة العامة] بشكل مؤكد، لكن ليس لدي تأكيد أن العيادة تقدم [الوصف الفرعي] تحديداً. للتأكد، يرجى الاتصال بالعيادة.\"\n\nهذه القاعدة تنطبق على أي سؤال يذكر نوعاً فرعياً أو تقنية محددة، سواء كان السؤال عن السعر أو عن مجرد توفر الخدمة.\n\n## تنبيه خاص: بطاقة الشفاء (CNAS)\nبطاقة الشفاء ليست بطاقة دفع بنكية، ولا تُستخدم للدفع المباشر في العيادة أبداً — هذا مذكور صراحة بقاعدة المعرفة. لا تخلط بينها وبين بطاقات CIB أو Edahabia (وهي بطاقات دفع بنكية مقبولة). إذا سُئلت عن بطاقة الشفاء أو CNAS أو الضمان الاجتماعي، الجواب الثابت هو: لا يوجد دفع مباشر مع الصندوق، يدفع المريض كامل التكلفة ثم يحصل على فاتورة وتقرير طبي للمطالبة بالاسترجاع من الصندوق، دون ضمان نسبة الاسترجاع.\n\n## الشفافية بالمصدر\nعندما يكون السؤال عن معلومة مهمة (سعر، سياسة، شرط طبي)، يمكنك أحياناً إنهاء الجواب بجملة قصيرة توضح المصدر، مثل: \"هذا حسب معلومات العيادة المسجلة لدينا\" أو \"حسب سياسة الحجز المعتمدة.\" لا تفعل هذا في كل رد (يصبح مزعجاً ومكرراً)، فقط للمعلومات الحساسة أو المالية.\n\n\n\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        64,
+        -48
+      ],
+      "id": "2ebc2513-16f2-483f-beef-584db11f3922",
+      "name": "AI Agent",
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o",
+          "cachedResultUrl": ""
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        160
+      ],
+      "id": "b4c8d607-c19f-4232-8fb3-6af9cc0fb456",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "ابحث في قاعدة معرفة عيادة الأسنان. عند البحث، استخدم اسم الخدمة أو المصطلح الدقيق المذكور في سؤال المريض (وليس الجملة كاملة)، وحاول أكثر من صياغة إذا كانت النتيجة الأولى غير مقنعة. إذا كانت الخدمة المسؤول عنها غير مذكورة إطلاقاً بنتائج البحث تحت أي صياغة جربتها، فهذا يعني أن العيادة لا تقدمها.\n\n",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": 8,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        192,
+        160
+      ],
+      "id": "af325632-3054-4fdd-9ffd-2618a7a7efcd",
+      "name": "Supabase Vector Store"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        272
+      ],
+      "id": "478dbc68-3cd9-45ef-ad5c-8d6009f06660",
+      "name": "Embeddings OpenAI"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "50a69ef8-6081-4d8f-8bf0-ceee88b3a47d",
+              "name": "output",
+              "value": "عذراً، واجهنا خللاً تقنياً مؤقتاً. الرجاء المحاولة بعد قليل، أو الاتصال بالعيادة مباشرة على 0550 00 00 00.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -96,
+        416
+      ],
+      "id": "10ebfe89-e479-4156-8e02-817ecdf60438",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_OR_FOLDER_ID",
+          "mode": "list",
+          "cachedResultName": "test_questions",
+          "cachedResultUrl": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 618597223,
+          "mode": "list",
+          "cachedResultName": "error-log",
+          "cachedResultUrl": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $now  }}",
+            "error_message": "={{ $json.error }}",
+            "user_question": "={{ $json.message.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "user_question",
+              "displayName": "user_question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        256,
+        416
+      ],
+      "id": "2b1e5437-265b-4fa4-b101-1d012816e025",
+      "name": "Append row in sheet"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "question"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -448,
+        224
+      ],
+      "id": "616be99a-1edc-41e2-8b0b-829a72328d37",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "position": [
+        48,
+        160
+      ],
+      "id": "cf507033-0794-4082-88ce-62aebf5d9921",
+      "name": "Postgres Chat Memory"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_OR_FOLDER_ID",
+          "mode": "list",
+          "cachedResultName": "test_questions",
+          "cachedResultUrl": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 505085908,
+          "mode": "list",
+          "cachedResultName": "Sheet3",
+          "cachedResultUrl": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "answer": "={{ $json.answer }}",
+            "question": "={{ $json.question }}",
+            "session_id": "={{ $json.session_Id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "question",
+              "displayName": "question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "answer",
+              "displayName": "answer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        784,
+        -48
+      ],
+      "id": "e9baea98-c4fd-4531-a72f-20c283dd8a5d",
+      "name": "Append row in sheet1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1d4623c-a118-475e-b619-b2f950928eb3",
+              "name": "=timestamp",
+              "value": "={{ $now }}",
+              "type": "string"
+            },
+            {
+              "id": "3af9beee-8b66-4501-95ba-636a482772c5",
+              "name": "session_Id",
+              "value": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+              "type": "string"
+            },
+            {
+              "id": "f927b1f8-726f-4aa5-8f7f-008e764585a0",
+              "name": "question",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "76171c56-f866-4a83-9302-4891711c6322",
+              "name": "answer",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        592,
+        -48
+      ],
+      "id": "8f06960f-a959-4e0b-bd7f-9dece55ba812",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -448,
+        -48
+      ],
+      "id": "22ac76e4-d26b-4977-ab74-04306ca45293",
+      "name": "Telegram Trigger"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        656,
+        224
+      ],
+      "id": "f90be4ab-f9aa-4900-b3dc-d2a2490b1d6d",
+      "name": "Send a text message"
+    },
+    {
+      "parameters": {
+        "content": "## 1\\ Telegram Input (Production)\n Receives user messages from Telegram",
+        "height": 256,
+        "width": 384,
+        "color": "#1E40AF"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -560,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "f48b9235-fd58-4e8f-89cc-84a99d1cda0b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## 2\\ Evaluation input \nTriggered by another workflow (testing)",
+        "height": 240,
+        "width": 384,
+        "color": "#6D28D9"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -560,
+        144
+      ],
+      "typeVersion": 1,
+      "id": "563ad798-2910-4454-a8de-de2a4a04d178",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 3\\ Ai / Rag Core \nThe main agent with model, memory and knowledge",
+        "height": 512,
+        "width": 720,
+        "color": "#312E81"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -160,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "1fc310e5-5d5a-45aa-a38e-234887720451",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 4\\ Logging (Google Sheets)\nSaves conversation data and metadata\n",
+        "height": 256,
+        "width": 416,
+        "color": "#15803D"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        576,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "95395485-ab5b-4e8e-99b9-add660589008",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## 5\\ Response (Telegram)\nSends the Ai response to the user",
+        "height": 240,
+        "width": 416,
+        "color": "#0E7490"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        576,
+        144
+      ],
+      "typeVersion": 1,
+      "id": "7c052226-45b9-45cd-95f3-1250a89270bc",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## 6\\ Error Handling\nlogs errors and can be extended (optionial)",
+        "width": 1552,
+        "color": "#B91C1C"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -560,
+        400
+      ],
+      "typeVersion": 1,
+      "id": "87999f98-e9e7-453f-a94d-d3b6a1c67699",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "#                                                                                Atlas Smile RAG Query - Complete Workflow\n## Telegram + Evaluation + RAG + Memory + Logging               ",
+        "height": 112,
+        "width": 752,
+        "color": "#0F172A"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -176,
+        -256
+      ],
+      "typeVersion": 1,
+      "id": "ffbdec6a-0221-4aef-9654-e3f31561db6e",
+      "name": "Sticky Note6"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6c9ce39e-9809-442e-8056-ef095cf2966f",
+  "meta": {},
+  "nodeGroups": [],
+  "id": "4P9tQ79ozLgJ34TD",
+  "tags": []
+}
